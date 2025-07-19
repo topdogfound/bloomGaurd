@@ -1,10 +1,17 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { OrganizationModule } from './v1/organization/organization.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
+const mongoUri = process.env.MONGO_URI ?? '';
+if (!mongoUri) {
+  throw new Error('MONGO_URI environment variable is not set');
+}
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [MongooseModule.forRoot(mongoUri), OrganizationModule],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

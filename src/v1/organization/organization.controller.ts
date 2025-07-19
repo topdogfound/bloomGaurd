@@ -21,6 +21,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { diskStorage } from 'multer';
 import { plainToInstance } from 'class-transformer';
 import { validateOrReject } from 'class-validator';
+import {
+  ApiBadRequestResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 const imageFilter = (
   _req: any,
   file: { originalname: string },
@@ -58,6 +66,16 @@ export class OrganizationController {
       fileFilter: imageFilter,
     }),
   )
+  @ApiOperation({ summary: 'Create a new organization' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Organization creation payload with images',
+    type: CreateOrganizationDto,
+  })
+  @ApiOkResponse({
+    description: 'Successfully created organization',
+    type: CreateOrganizationDto,
+  })
   async create(
     @UploadedFiles() imageFiles: Express.Multer.File[] | undefined,
     @Body() rawBody: Record<string, any>,
@@ -87,6 +105,15 @@ export class OrganizationController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all organizations' })
+  @ApiOkResponse({
+    description: 'Returns a list of organizations',
+    type: CreateOrganizationDto,
+    isArray: true,
+  })
+  @ApiBadRequestResponse({
+    description: 'No organizations found',
+  })
   findAll() {
     return this.organizationService.findAll();
   }
@@ -96,6 +123,14 @@ export class OrganizationController {
   //   return this.organizationService.findById(id);
   // }
   @Get(':organizationId')
+  @ApiOperation({ summary: 'Get organization by organizationId' })
+  @ApiOkResponse({
+    description: 'Returns the organization with the specified organizationId',
+    type: CreateOrganizationDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Organization not found',
+  })
   async findByOrganizationId(@Param('organizationId') organizationId: string) {
     const org =
       await this.organizationService.findByOrganizationId(organizationId);
@@ -112,6 +147,14 @@ export class OrganizationController {
   //   return this.organizationService.remove(id);
   // }
   @Delete(':organizationId')
+  @ApiOperation({ summary: 'Delete organization by organizationId' })
+  @ApiOkResponse({
+    description: 'Successfully deleted organization',
+    type: CreateOrganizationDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Organization not found',
+  })
   async removeByOrganizationId(
     @Param('organizationId') organizationId: string,
   ) {

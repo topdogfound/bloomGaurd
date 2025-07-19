@@ -159,7 +159,7 @@ export class OrganizationController {
     @Param('organizationId') organizationId: string,
   ) {
     const org =
-      await this.organizationService.removeByOrganizationId(organizationId);
+      await this.organizationService.softDeleteByOrganizationId(organizationId);
     if (!org) {
       throw new NotFoundException(
         `Organization with id ${organizationId} not found`,

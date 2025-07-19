@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  InternalServerErrorException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
@@ -15,12 +19,40 @@ export class OrganizationService {
   ) {}
 
   async create(createDto: CreateOrganizationDto): Promise<Organization> {
-    const createdOrganization = new this.organizationModel({ ...createDto });
+    const existing = await this.organizationModel.findOne({
+      organizationId: createDto.organizationId,
+    });
 
+    if (existing) {
+      if (existing.isDeleted) {
+        const updated = await this.organizationModel
+          .findByIdAndUpdate(
+            existing._id,
+            {
+              ...createDto,
+              isDeleted: false,
+            },
+            { new: true },
+          )
+          .exec();
+
+        if (!updated)
+          throw new InternalServerErrorException(
+            'Failed to restore organization',
+          );
+        return updated;
+      } else {
+        throw new ConflictException('Organization ID already exists');
+      }
+    }
+
+    // Fresh creation
+    const createdOrganization = new this.organizationModel({ ...createDto });
     return createdOrganization.save();
   }
+
   async findAll(): Promise<Organization[]> {
-    return this.organizationModel.find().exec();
+    return this.organizationModel.find({ isDeleted: false }).exec();
   }
   async findById(id: string): Promise<Organization | null> {
     return this.organizationModel.findById(id).exec();
@@ -32,11 +64,22 @@ export class OrganizationService {
   async findByOrganizationId(
     organizationId: string,
   ): Promise<Organization | null> {
-    return this.organizationModel.findOne({ organizationId }).exec();
+    return this.organizationModel
+      .findOne({ organizationId: organizationId, isDeleted: false })
+      .exec();
   }
   async removeByOrganizationId(
     organizationId: string,
   ): Promise<Organization | null> {
     return this.organizationModel.findOneAndDelete({ organizationId }).exec();
+  }
+  async softDeleteByOrganizationId(
+    organizationId: string,
+  ): Promise<Organization | null> {
+    return this.organizationModel.findOneAndUpdate(
+      { organizationId },
+      { isDeleted: true },
+      { new: true },
+    );
   }
 }

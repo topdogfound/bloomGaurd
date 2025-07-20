@@ -41,6 +41,8 @@ async function bootstrap() {
     ? `https://${process.env.RAILWAY_STATIC_URL}`
     : `http://localhost:${port}`;
 
-  console.log(`🚀 App running on ${domain}`);
+  console.log(
+    `🚀 App running on port : ${port}, host : ${host}, domain: ${domain}`,
+  );
 }
 void bootstrap();

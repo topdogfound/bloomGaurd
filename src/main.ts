@@ -30,6 +30,17 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = process.env.PORT ?? 3000;
+  const host = process.env.HOST ?? '0.0.0.0';
+
+  await app.listen(port, host);
+
+  // Determine domain dynamically
+  const isRailway = process.env.RAILWAY_STATIC_URL !== undefined;
+  const domain = isRailway
+    ? `https://${process.env.RAILWAY_STATIC_URL}`
+    : `http://localhost:${port}`;
+
+  console.log(`🚀 App running on ${domain}`);
 }
 void bootstrap();

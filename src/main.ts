@@ -10,7 +10,7 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.enableCors();
   app.getHttpAdapter().get('/', (req: Request, res: Response) => {
     res.send('App is running');
   });
